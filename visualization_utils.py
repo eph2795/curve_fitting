@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,7 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
 
-def visualize(X, Y, exp_name, n=4):
+def visualize(X, Y, exp_name, n=4, fdir=None):
     X_norm = StandardScaler().fit_transform(X)
     pca = PCA(n_components=2, random_state=0)
     X_embedded = pca.fit_transform(X_norm)
@@ -27,7 +29,11 @@ def visualize(X, Y, exp_name, n=4):
     for i, y in enumerate(Y):
         plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=12)
     plt.legend(loc='best')
-    plt.savefig('clustering_{}.png'.format(exp_name))
+   
+    img_path = 'clustering_{}.png'.format(exp_name) 
+    if fdir is not None:
+        img_path = os.path.join(fdir, img_path)
+    plt.savefig(img_path)
 
     y_labels = Y
     x_labels = Y
@@ -54,4 +60,8 @@ def visualize(X, Y, exp_name, n=4):
 
     ax.set_title("Samples pairwise distances", fontsize=20)
     fig.tight_layout()
-    plt.savefig('heatmap_{}.png'.format(exp_name))
+    
+    img_path = 'heatmap_{}.png'.format(exp_name)
+    if fdir is not None:
+        img_path = os.path.join(fdir, img_path)
+    plt.savefig(img_path)
