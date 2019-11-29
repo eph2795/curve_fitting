@@ -15,8 +15,8 @@ def normalization(data, tag):
     return exp_data
 
 
-def read_data(data_path, skip_first=False):
-    with open(os.path.join(data_path, 'CFs.txt'), 'r') as f:
+def read_data(data_path, data_name='CFs.txt', skip_first=False):
+    with open(os.path.join(data_path, data_name), 'r') as f:
         lines = f.readlines()
     data = dict()
     for line in lines[int(skip_first):]:
@@ -25,19 +25,24 @@ def read_data(data_path, skip_first=False):
     return data
 
 
-def plot_results(result, tag, dir_path=None):
-    y = result['fitted']
-    d = result['exp_data']
-    r = np.arange(0, len(y))
+def plot_results(result, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0.1):
+    if labels is None:
+        labels = ['fitted', 'exp_data']
     
     plt.figure(figsize=(10, 10))
-    plt.plot(r, d, label='Data')
+    xlim = 0
+    for label in labels:
+        y = result[label]
+        r = np.arange(0, len(y))
+        xlim = max(xlim, len(y))
+        plt.plot(r, y, label=label)
     # plt.plot(r, z, label='Data S2')
-    plt.plot(r, y, label='Fitted')
+#     plt.plot(r, y, label='Fitted')
     plt.legend(loc='best')
-    plt.title('Plot for {}'.format(tag))
-    plt.ylim([-0.1, 1])
-    plt.xlim([0, 250])
+    if tag is not None:
+        plt.title('Plot for {}'.format(tag))
+    plt.ylim([x_down, x_up])
+    plt.xlim([0, xlim])
     
     if dir_path is not None:
         plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)))
