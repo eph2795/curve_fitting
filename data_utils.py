@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 def normalization(data, tag):
     exp_data = np.array(data[tag])
     phi = exp_data[0]
-    if tag.startswith('S2'):
+    if tag.startswith('S2') or tag.startswith('С2'):
         exp_data = (exp_data - phi ** 2) / (phi - phi ** 2)
     else:
         exp_data = exp_data / phi
@@ -35,11 +35,12 @@ def plot_results(result, tag, dir_path=None):
     # plt.plot(r, z, label='Data S2')
     plt.plot(r, y, label='Fitted')
     plt.legend(loc='best')
-    plt.title('Plot for {}'.format(tag))
+    plt.title(r'${corr_func}_{{ {direction} }}$'.format(corr_func=tag[0], direction=tag[1:]))
     plt.ylim([-0.1, 1])
     plt.xlim([0, 250])
     
     if dir_path is not None:
-        plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)))
+        plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)), dpi=400)
         with open(os.path.join(dir_path, '{}.json'.format(tag)), 'w') as f:
             f.write(json.dumps(result, indent=2))
+    plt.close('all')

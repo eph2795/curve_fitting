@@ -1,7 +1,9 @@
 import os
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
@@ -23,17 +25,45 @@ def visualize(X, Y, exp_name, n=4, fdir=None):
     dist_matr = pairwise_distances(X_norm)
 
     plt.figure(figsize=(20, 20))
-    for i in range(n):
-        idxes,  = np.where(clusters == i)
-        plt.scatter(X_embedded[idxes, 0],X_embedded[idxes, 1], label=str(i))
+    # Точки векторов, спроецированные с помощью PCA на плоскость
+#     for i in range(n):
+#         idxes,  = np.where(clusters == i)
+#         plt.scatter(X_embedded[idxes, 0],X_embedded[idxes, 1], label=str(i), s=16000)
+#     print(clusters.shape)
+    df = pd.DataFrame(data={'x': X_embedded[:, 0], 
+                            'y': X_embedded[:, 1], 
+                            'Cluster': clusters})
+    df['Cluster'] = df['Cluster'].astype(int) 
+    ax = sns.scatterplot(x='x', 
+                    y='y', 
+                    hue='Cluster',
+                    palette=sns.color_palette('bright', n),
+                    s=400, 
+                    legend=False, 
+                    data=df)
+    
+    palette = sns.color_palette('bright', n)
+    for i, c in enumerate(palette):
+        plt.scatter([], [], 
+                    c=[c], 
+                    s=300,
+                    label=str(i + 1))
+    plt.legend(
+        scatterpoints=1, 
+#         frameon=True, 
+#         labelspacing=0.5, 
+        title='Cluster'
+    )
+    
+    # Подписываем точки названием стека + корр функции 
     for i, y in enumerate(Y):
-        plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=12)
+        plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=30)
     plt.legend(loc='best')
    
-    img_path = 'clustering_{}.png'.format(exp_name) 
+    img_path = 'clustering_{exp_name}_{n_clusters}.png'.format(exp_name=exp_name, n_clusters=n) 
     if fdir is not None:
         img_path = os.path.join(fdir, img_path)
-    plt.savefig(img_path)
+    plt.savefig(img_path, dpi=400)
 
     y_labels = Y
     x_labels = Y
@@ -64,4 +94,5 @@ def visualize(X, Y, exp_name, n=4, fdir=None):
     img_path = 'heatmap_{}.png'.format(exp_name)
     if fdir is not None:
         img_path = os.path.join(fdir, img_path)
-    plt.savefig(img_path)
+    plt.savefig(img_path, dpi=400)
+    plt.close('all')
