@@ -8,20 +8,23 @@ def fit_curve(exp_data, f, get_x0, unpack, bounds, cons, **kwargs):
     x = get_x0()
 
     f_opt = lambda x: func(f, x, exp_data, **kwargs)
-    res = minimize(f_opt, x, options={'ftol': 1e-9, 'disp': False},
+    res = minimize(f_opt, 
+                   x, 
+                   options={'ftol': 1e-9, 'disp': False},
                    method='SLSQP',
                    constraints=cons,
                    bounds=bounds)
-    params = unpack(res.x)
+#     params = unpack(res.x)
 
     results = {
+        'success': bool(res['success']),
         'x0': list(x),
         'x': list(res.x),
         'SSE': f_opt(res.x),
         'exp_data': list(exp_data),
         'fitted': list(f(res.x, exp_data.shape[0], **kwargs)),
     }
-    results.update(params)
+#     results.update(params)
     
     return results
 
@@ -52,7 +55,7 @@ def f_exp(x, n, **kwargs):
 def get_x0_standard():
     x = (np.random.rand(6) + 0.1) / 1.1
     x[0:3] = x[0:3] / x[0:3].sum()
-    x[3] = x[3] if x[3] > x[4] else x[4] 
+    x[3] = x[3] if x[3] > x[4] else x[4] + 0.001 
     return x
 
 

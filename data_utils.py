@@ -25,7 +25,7 @@ def read_data(data_path, data_name='CFs.txt', skip_first=False):
     return data
 
 
-def plot_results(result, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0.1):
+def plot_results(result, labels_mapping=None, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0.1, dpi=400):
     if labels is None:
         labels = ['fitted', 'exp_data']
     
@@ -35,6 +35,7 @@ def plot_results(result, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0
         y = result[label]
         r = np.arange(0, len(y))
         xlim = max(xlim, len(y))
+        label = label if labels_mapping is None else labels_mapping[label]
         plt.plot(r, y, label=label)
     # plt.plot(r, z, label='Data S2')
 #     plt.plot(r, y, label='Fitted')
@@ -44,7 +45,7 @@ def plot_results(result, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0
     plt.ylim([x_down, x_up])
     plt.xlim([0, xlim])    
     if dir_path is not None:
-        plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)), dpi=400)
+        plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)), dpi=dpi)
         with open(os.path.join(dir_path, '{}.json'.format(tag)), 'w') as f:
-            f.write(json.dumps(result, indent=2))
+            json.dump(result, f, indent=2)
     plt.close('all')
