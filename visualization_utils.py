@@ -13,7 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
 
-def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400):
+def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400, use_title=True):
     fig = plt.figure(figsize=(20, 20))
     ax = plt.subplot2grid((20,20), (0,0), colspan=18, rowspan=18)
     # ax2 = plt.subplot2grid((20,20), (18,0), colspan=18, rowspan=2)
@@ -58,7 +58,8 @@ def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400):
                 xticklabels=False, 
                 yticklabels=False)
 
-    ax.set_title(r"Pairwise {tex} {title} distances".format(tex=tex, title=title), fontsize=20)
+    if use_title:
+        ax.set_title(r"Pairwise {tex} {title} distances".format(tex=tex, title=title), fontsize=20)
     fig.tight_layout()
 
     img_path = 'heatmap_{exp_name}_{title}.png'.format(exp_name=exp_name, title=title)

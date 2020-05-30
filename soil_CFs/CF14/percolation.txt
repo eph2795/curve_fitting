@@ -1,0 +1,10 @@
+Percolation results(num clusters):
+X - 1
+Y - 1
+Z - 1
+Porosity:
+fi     - 0.18199
+Effective porosity:
+fi_X   - 0.17504
+fi_Y   - 0.17504
+fi_Z   - 0.17504
