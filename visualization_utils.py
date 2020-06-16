@@ -7,20 +7,35 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.metrics import pairwise_distances
-from sklearn.manifold import TSNE
-from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
 
-def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400, use_title=True):
+def plot_heatmap(
+        data,
+        Y,
+        exp_name,
+        tex,
+        title,
+        fdir=None,
+        dpi=400,
+        use_title=True
+):
     fig = plt.figure(figsize=(20, 20))
-    ax = plt.subplot2grid((20,20), (0,0), colspan=18, rowspan=18)
+    ax = plt.subplot2grid((20,20), (0,0), colspan=20, rowspan=20)
     # ax2 = plt.subplot2grid((20,20), (18,0), colspan=18, rowspan=2)
-    ax3 = plt.subplot2grid((20,20), (0,18), colspan=2, rowspan=18)
+    # ax3 = plt.subplot2grid((20,20), (0,18), colspan=2, rowspan=18)
 
     #with sns.axes_style("white"):
-    sns.heatmap(data, ax=ax, annot=True, cmap="YlGnBu", linecolor='b', cbar=False)
+    sns.heatmap(
+        data=data,
+        ax=ax,
+        annot=False,
+        cmap="YlGnBu",
+        linecolor='b',
+        cbar=True,
+        cbar_kws={'label': '', 'orientation': 'vertical'}
+    )
     # ax.xaxis.tick_top()
 
     y_labels = Y
@@ -28,8 +43,8 @@ def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400, use_title=Tr
 
     ax.set_xticks(np.arange(len(x_labels)) + 0.5)
     ax.set_yticks(np.arange(len(y_labels)) + 0.5)
-    ax.set_xticklabels(x_labels, fontsize=12)
-    ax.set_yticklabels(y_labels, fontsize=12)
+    ax.set_xticklabels(x_labels, fontsize=32)
+    ax.set_yticklabels(y_labels, fontsize=32)
 
     # Rotate the tick labels and set their alignment.
     for tick in ax.get_yticklabels():
@@ -48,15 +63,17 @@ def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400, use_title=Tr
     #             cbar=False, 
     #             xticklabels=False, 
     #             yticklabels=False)
-    ax3.set_title('Total distance', fontsize=20)
-    sns.heatmap(data.sum(axis=1, keepdims=True).round(4),
-                ax=ax3, 
-                annot=True, 
-                cmap="YlGnBu", 
-                fmt='.2g',
-                cbar=False, 
-                xticklabels=False, 
-                yticklabels=False)
+    # ax3.set_title('Total distance', fontsize=20)
+    # sns.heatmap(
+    #     data.sum(axis=1, keepdims=True).round(4),
+    #     ax=ax3,
+    #     annot=True,
+    #     cmap="YlGnBu",
+    #     fmt='.2g',
+    #     cbar=False,
+    #     xticklabels=False,
+    #     yticklabels=False,
+    # )
 
     if use_title:
         ax.set_title(r"Pairwise {tex} {title} distances".format(tex=tex, title=title), fontsize=20)
@@ -65,64 +82,85 @@ def plot_heatmap(data, Y, exp_name, tex, title, fdir=None, dpi=400, use_title=Tr
     img_path = 'heatmap_{exp_name}_{title}.png'.format(exp_name=exp_name, title=title)
     if fdir is not None:
         img_path = os.path.join(fdir, img_path)
-    plt.savefig(img_path, dpi=dpi)
+        plt.savefig(img_path, dpi=dpi)
     
     
-def plot_clusters(X_norm, Y, exp_name, tex, title, n, fdir=None, dpi=400):  
+def plot_clusters(
+        X,
+        Y,
+        exp_name,
+        tex,
+        title,
+        n,
+        categories=None,
+        fdir=None,
+        dpi=400,
+        use_title=True
+):
     Y = np.array(Y)
     f = Y != '1 '
-    X_norm = X_norm[f]
+    X = X[f]
     Y = Y[f]
+    if categories is not None:
+        categories = np.array(categories)[f]
     
     pca = PCA(n_components=2, random_state=0)
-    X_embedded = pca.fit_transform(X_norm)
+    X_embedded = pca.fit_transform(X)
 
     kmeans = KMeans(n_clusters=n, random_state=42)
-    kmeans.fit(X_norm)
+    kmeans.fit(X)
 
-    clusters = kmeans.predict(X_norm)
-    
+    clusters = kmeans.predict(X) + 1
     plt.figure(figsize=(20, 20))
-    df = pd.DataFrame(data={'x': X_embedded[:, 0], 
-                            'y': X_embedded[:, 1], 
-                            'Cluster': clusters})
-    df['Cluster'] = df['Cluster'].astype(int) 
+    data = {
+        'x': X_embedded[:, 0],
+        'y': X_embedded[:, 1],
+        'Cluster': clusters.astype(int)
+    }
+    if categories is not None:
+        data['Category'] = categories
+    df = pd.DataFrame(data=data)
     ax = sns.scatterplot(
         x='x', 
         y='y', 
         hue='Cluster',
+        style='Category',
         palette=sns.color_palette('bright', n),
-        s=400, 
-        legend=False, 
+        s=400,
         data=df
     )
-    
-    palette = sns.color_palette('bright', n)
-    for i, c in enumerate(palette):
-        plt.scatter([], [], 
-                    c=[c], 
-                    s=300,
-                    label=str(i + 1))
-    plt.legend(
-        scatterpoints=1, 
-#         frameon=True, 
-#         labelspacing=0.5, 
-        title='Cluster',
-        loc='best'
-    )
-    
-    # Подписываем точки названием стека + корр функции 
+
+    # Подписываем точки названием стека + корр функции
     for i, y in enumerate(Y):
         plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=30)
-    plt.legend(loc='best')
-    plt.title(r"{tex} {title} clustering".format(tex=tex, title=title), fontsize=30)
-    img_path = 'clustering_{exp_name}_{title}_{n_clusters}.png'.format(exp_name=exp_name, n_clusters=n, title=title) 
+    plt.legend(loc='best', markerscale=3)
+    if use_title:
+        plt.title(r"{tex} {title} clustering".format(tex=tex, title=title), fontsize=30)
+    img_path = (
+        'clustering_{exp_name}_{title}_clusters{n_clusters}_categories{n_categories}.png'
+        .format(exp_name=exp_name,
+                n_clusters=n,
+                n_categories=len(set(categories if categories else [])),
+                title=title)
+    )
     if fdir is not None:
         img_path = os.path.join(fdir, img_path)
-    plt.savefig(img_path, dpi=dpi)
+        plt.savefig(img_path, dpi=dpi)
     
     
-def visualize(X, X_f, Y, scalers, exp_name, tex, ns=[4], fdir=None, dpi=400):
+def visualize(
+        X,
+        X_f,
+        Y,
+        categories,
+        scalers,
+        exp_name,
+        tex,
+        ns=[4],
+        fdir=None,
+        dpi=400,
+        use_title=False
+):
     if scalers is not None:
         tag = exp_name.split('_')[0]
         tag = tag if tag[-1] not in ['X', 'Y', 'Z'] else tag[:-1]
@@ -133,11 +171,32 @@ def visualize(X, X_f, Y, scalers, exp_name, tex, ns=[4], fdir=None, dpi=400):
         X_f_norm = X_f
         
     for n in ns:
-        plot_clusters(X_norm, Y, exp_name=exp_name, tex=tex, title='parameters', n=n, fdir=fdir, dpi=dpi)
-    
-    for n in ns:
-        plot_clusters(X_f_norm, Y, exp_name=exp_name, tex=tex, title='functions', n=n, fdir=fdir, dpi=dpi)
-    
+        for c in categories:
+            plot_clusters(
+                X_norm,
+                Y,
+                categories=c,
+                exp_name=exp_name,
+                tex=tex,
+                title='parameters',
+                n=n,
+                fdir=fdir,
+                dpi=dpi,
+                use_title=use_title
+            )
+            plot_clusters(
+                X_f_norm,
+                Y,
+                categories=c,
+                exp_name=exp_name,
+                tex=tex,
+                title='functions',
+                n=n,
+                fdir=fdir,
+                dpi=dpi,
+                use_title=use_title
+            )
+
     dist_matr = pairwise_distances(X_norm) / np.sqrt(X_norm.shape[1])
     dist_matr_f = pairwise_distances(X_f_norm) / np.sqrt(X_f_norm.shape[1])
     dist_matr_r = sp.stats.rankdata(dist_matr.flatten()).reshape(X_norm.shape[0], X_norm.shape[0])
@@ -145,8 +204,44 @@ def visualize(X, X_f, Y, scalers, exp_name, tex, ns=[4], fdir=None, dpi=400):
     dist_matr_r_f = sp.stats.rankdata(dist_matr_f.flatten()).reshape(X_f_norm.shape[0], X_f_norm.shape[0])
     dist_matr_r_f = dist_matr_r_f / dist_matr_r_f.max()
     
-    plot_heatmap(data=dist_matr, Y=Y, exp_name=exp_name, tex=tex, title='parameters', fdir=fdir, dpi=dpi)
-    plot_heatmap(data=dist_matr_f, Y=Y, exp_name=exp_name, tex=tex, title='functions', fdir=fdir, dpi=dpi)
-    plot_heatmap(data=dist_matr_r, Y=Y, exp_name=exp_name, tex=tex, title='parameters rank', fdir=fdir, dpi=dpi)
-    plot_heatmap(data=dist_matr_r_f, Y=Y, exp_name=exp_name, tex=tex, title='functions rank', fdir=fdir, dpi=dpi)
+    plot_heatmap(
+        data=dist_matr,
+        Y=Y,
+        exp_name=exp_name,
+        tex=tex,
+        title='parameters',
+        fdir=fdir,
+        dpi=dpi,
+        use_title=use_title
+    )
+    plot_heatmap(
+        data=dist_matr_f,
+        Y=Y,
+        exp_name=exp_name,
+        tex=tex,
+        title='functions',
+        fdir=fdir,
+        dpi=dpi,
+        use_title=use_title
+    )
+    plot_heatmap(
+        data=dist_matr_r,
+        Y=Y,
+        exp_name=exp_name,
+        tex=tex,
+        title='parameters rank',
+        fdir=fdir,
+        dpi=dpi,
+        use_title=use_title
+    )
+    plot_heatmap(
+        data=dist_matr_r_f,
+        Y=Y,
+        exp_name=exp_name,
+        tex=tex,
+        title='functions rank',
+        fdir=fdir,
+        dpi=dpi,
+        use_title=use_title
+    )
     plt.close('all')

@@ -1,5 +1,6 @@
 import os
 import json
+import string
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,25 +26,39 @@ def read_data(data_path, data_name='CFs.txt', skip_first=False):
     return data
 
 
-def plot_results(result, labels_mapping=None, labels=None, tag=None, dir_path=None, x_up=1, x_down=-0.1, dpi=400):
+def plot_results(
+        result,
+        labels_mapping=None,
+        labels=None,
+        tag=None,
+        dir_path=None,
+        x_up=1,
+        x_down=-0.1,
+        dpi=400
+):
     if labels is None:
         labels = ['fitted', 'exp_data']
     
     plt.figure(figsize=(10, 10))
-    xlim = 0
+    x_lim = 0
     for label in labels:
         y = result[label]
         r = np.arange(0, len(y))
-        xlim = max(xlim, len(y))
+        x_lim = max(x_lim, len(y))
         label = label if labels_mapping is None else labels_mapping[label]
         plt.plot(r, y, label=label)
     # plt.plot(r, z, label='Data S2')
 #     plt.plot(r, y, label='Fitted')
     plt.legend(loc='best')
     if tag is not None:
-        plt.title(r'${corr_func}_{{ {direction} }}$'.format(corr_func=tag[0], direction=tag[1:]))
+        border = -1
+        if tag[border - 1] in string.digits:
+            border -= 1
+        corr_func = tag[:border]
+        direction = tag[border:]
+        plt.title(r'${corr_func}_{{ {direction} }}$'.format(corr_func=corr_func, direction=direction))
     plt.ylim([x_down, x_up])
-    plt.xlim([0, xlim])    
+    plt.xlim([0, x_lim])
     if dir_path is not None:
         plt.savefig(os.path.join(dir_path, '{}.png'.format(tag)), dpi=dpi)
         with open(os.path.join(dir_path, '{}.json'.format(tag)), 'w') as f:
