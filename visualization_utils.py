@@ -92,7 +92,10 @@ def plot_clusters(
         tex,
         title,
         n,
+        use_pca=True,
+        clusters=None,
         categories=None,
+        sizes=None,
         fdir=None,
         dpi=400,
         use_title=True
@@ -103,14 +106,22 @@ def plot_clusters(
     Y = Y[f]
     if categories is not None:
         categories = np.array(categories)[f]
-    
-    pca = PCA(n_components=2, random_state=0)
-    X_embedded = pca.fit_transform(X)
+    if clusters is not None:
+        clusters = np.array(clusters)[f]
+    if sizes is not None:
+        sizes = np.array(sizes)[f]
 
-    kmeans = KMeans(n_clusters=n, random_state=42)
-    kmeans.fit(X)
+    if use_pca:
+        pca = PCA(n_components=2, random_state=0)
+        X_embedded = pca.fit_transform(X)
+    else:
+        X_embedded = np.copy(X)
 
-    clusters = kmeans.predict(X) + 1
+    if clusters is None:
+        kmeans = KMeans(n_clusters=n, random_state=42)
+        kmeans.fit(X)
+        clusters = kmeans.predict(X) + 1
+
     plt.figure(figsize=(20, 20))
     data = {
         'x': X_embedded[:, 0],
@@ -119,28 +130,43 @@ def plot_clusters(
     }
     if categories is not None:
         data['Category'] = categories
+    if sizes is not None:
+        data['Size'] = sizes
     df = pd.DataFrame(data=data)
-    ax = sns.scatterplot(
-        x='x', 
-        y='y', 
-        hue='Cluster',
-        style='Category',
-        palette=sns.color_palette('bright', n),
-        s=400,
-        data=df
-    )
+    if sizes is not None:
+        ax = sns.scatterplot(
+            x='x',
+            y='y',
+            hue='Cluster',
+            style='Category',
+            size='Size',
+            palette=sns.color_palette('bright', n),
+            data=df,
+            sizes=(300, 800),
+        )
+    else:
+        ax = sns.scatterplot(
+            x='x',
+            y='y',
+            hue='Cluster',
+            style='Category',
+            palette=sns.color_palette('bright', n),
+            s=400,
+            data=df
+        )
 
     # Подписываем точки названием стека + корр функции
     for i, y in enumerate(Y):
         plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=30)
-    plt.legend(loc='best', markerscale=3)
+    plt.legend(loc='best', markerscale=2)
     if use_title:
         plt.title(r"{tex} {title} clustering".format(tex=tex, title=title), fontsize=30)
+    n_categories = len(set(categories if categories is not None else []))
     img_path = (
         'clustering_{exp_name}_{title}_clusters{n_clusters}_categories{n_categories}.png'
         .format(exp_name=exp_name,
                 n_clusters=n,
-                n_categories=len(set(categories if categories else [])),
+                n_categories=n_categories,
                 title=title)
     )
     if fdir is not None:
