@@ -43,8 +43,8 @@ def plot_heatmap(
 
     ax.set_xticks(np.arange(len(x_labels)) + 0.5)
     ax.set_yticks(np.arange(len(y_labels)) + 0.5)
-    ax.set_xticklabels(x_labels, fontsize=32)
-    ax.set_yticklabels(y_labels, fontsize=32)
+    ax.set_xticklabels(x_labels, fontsize=42)
+    ax.set_yticklabels(y_labels, fontsize=42)
 
     # Rotate the tick labels and set their alignment.
     for tick in ax.get_yticklabels():
@@ -157,8 +157,8 @@ def plot_clusters(
 
     # Подписываем точки названием стека + корр функции
     for i, y in enumerate(Y):
-        plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=30)
-    plt.legend(loc='best', markerscale=2)
+        plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=50)
+    plt.legend(loc='lower right', markerscale=2)
     if use_title:
         plt.title(r"{tex} {title} clustering".format(tex=tex, title=title), fontsize=30)
     n_categories = len(set(categories if categories is not None else []))
