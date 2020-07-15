@@ -158,7 +158,7 @@ def plot_clusters(
     # Подписываем точки названием стека + корр функции
     for i, y in enumerate(Y):
         plt.annotate(y, (X_embedded[i, 0], X_embedded[i, 1]), fontsize=50)
-    plt.legend(loc='lower right', markerscale=2)
+    plt.legend(loc='center left', markerscale=2, bbox_to_anchor=(1, 0.5))
     if use_title:
         plt.title(r"{tex} {title} clustering".format(tex=tex, title=title), fontsize=30)
     n_categories = len(set(categories if categories is not None else []))
@@ -171,7 +171,7 @@ def plot_clusters(
     )
     if fdir is not None:
         img_path = os.path.join(fdir, img_path)
-        plt.savefig(img_path, dpi=dpi)
+        plt.savefig(img_path, dpi=dpi, bbox_inches='tight')
     
     
 def visualize(
