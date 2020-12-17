@@ -36,6 +36,8 @@ def plot_heatmap(
         cbar=True,
         cbar_kws={'label': '', 'orientation': 'vertical'}
     )
+    color_bar = ax.collections[0].colorbar
+    color_bar.ax.tick_params(labelsize=42)
     # ax.xaxis.tick_top()
 
     y_labels = Y
